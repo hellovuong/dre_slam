@@ -19,7 +19,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
-#include <geometry_msgs/QuaternionStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <dre_slam/dre_slam.h>
 #include <sys/stat.h>
 
@@ -40,13 +40,13 @@ public:
 		
 	}// grabRGBD
 	
-	void grabEncoder ( const geometry_msgs::QuaternionStamped::ConstPtr& en_ptr ) {
+	void grabEncoder ( const nav_msgs::PoseWithCovariance::ConstPtr& en_ptr ) {
 		
 		// Extract left and right encoder measurements.
-		double enl1 = en_ptr->quaternion.x;
-		double enl2 = en_ptr->quaternion.y;
-		double enr1 = en_ptr->quaternion.z;
-		double enr2 = en_ptr->quaternion.w;
+		double enl1 = en_ptr->pose.pose.orientation.x;
+		double enl2 = en_ptr->pose.pose.orientation.y;
+		double enr1 = en_ptr->pose.pose.orientation.z;
+		double enr2 = en_ptr->pose.pose.orientation.w;
 		
 		// Calculate left and right encoder.
 		double enl = 0.5* ( enl1 + enl2 );
