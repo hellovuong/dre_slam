@@ -19,7 +19,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
-#include <geometry_msgs/QuaternionStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <dre_slam/dre_slam.h>
 #include <sys/stat.h>
 
@@ -40,50 +40,56 @@ public:
 		
 	}// grabRGBD
 	
-	void grabEncoder ( const geometry_msgs::QuaternionStamped::ConstPtr& en_ptr ) {
+	void grabEncoder ( const nav_msgs::PoseWithCovariance::ConstPtr& en_ptr ) {
 		
 		// Extract left and right encoder measurements.
-		double enl1 = en_ptr->quaternion.x;
-		double enl2 = en_ptr->quaternion.y;
-		double enr1 = en_ptr->quaternion.z;
-		double enr2 = en_ptr->quaternion.w;
+		double x = en_ptr->pose.pose.position.x;
+		double y = en_ptr->pose.pose.position.y;
+		double z = en_ptr->pose.pose.position.z;
+		double yaw = en_ptr->pose.pose.orientation.z;
 		
 		// Calculate left and right encoder.
-		double enl = 0.5* ( enl1 + enl2 );
-		double enr = 0.5* ( enr1 + enr2 );
+		/*double enl = 0.5* ( enl1 + enl2 );
+		double enr = 0.5* ( enr1 + enr2 );*/
 		double  ts= en_ptr->header.stamp.toSec();
 		
 		// Check bad data.
 		{
 			
-			if ( last_enl_ == 0 && last_enr_ == 0 ) {
-				last_enl_ = enl;
-				last_enr_ = enr;
-				return;
+			if ( last_x == 0 && last_y == 0 && last_z == 0 && last_yaw == 0) {
+				last_x = x;
+				last_y = y;
+				last_z = z;
+				last_yaw = yaw;
+				return; 
 			}
 			
-			double delta_enl = fabs ( enl - last_enl_ );
-			double delta_enr = fabs ( enr - last_enr_ );
+			//double delta_enl = fabs ( enl - last_enl_ );
+			//double delta_enr = fabs ( enr - last_enr_ );
 			
-			const double delta_th = 4000;
+			//const double delta_th = 4000;
 			
-			if ( delta_enl > delta_th || delta_enr > delta_th ) {
+			if ( z > 0.1 ) {
 				std::cout << "\nJUMP\n";
 				return;
 			}
 			
-			last_enl_ = enl;
-			last_enr_ = enr;
+			last_x = x;
+			last_y = y;
+			last_z = z;
+			last_yaw = yaw;
 		}
 		
 		// Add encoder measurements.
-		slam_->addEncoder ( enl, enr, ts );
+		slam_->addEncoder (x, y, z, yaw, ts);
 	}// grabEncoder
 	
 private:
 	DRE_SLAM* slam_;
-	double last_enl_ = 0;
-	double last_enr_ = 0;
+	last_x = 0;
+	last_y = 0;
+	last_z = 0;
+	last_yaw = 0;
 };
 
 int main ( int argc, char** argv )
