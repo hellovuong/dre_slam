@@ -2,7 +2,7 @@
 
 <!-- Start DRE-SLAM System -->
 <node pkg="dre_slam" type="dre_slam_node" name="dre_slam_node" output="screen">
-	<param name="dre_slam_cfg_dir" value="$(find dre_slam)/config/comparative_test.yaml" />
+	<param name="dre_slam_cfg_dir" value="$(find dre_slam)/config/comparative_test_sber.yaml" />
 	<param name="orbvoc_dir" value="$(find dre_slam)/config/orbvoc/ORBvoc.bin" />
 	<param name="yolov3_classes_dir" value="$(find dre_slam)/config/yolov3/coco.names" />
 	<param name="yolov3_model_dir" value="$(find dre_slam)/config/yolov3/yolov3.cfg" />
