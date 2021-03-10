@@ -20,8 +20,10 @@
 #include <message_filters/time_synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <geometry_msgs/QuaternionStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <dre_slam/dre_slam.h>
 #include <sys/stat.h>
+#include <tf/transform_datatypes.h>
 
 using namespace dre_slam;
 
@@ -40,36 +42,70 @@ public:
 		
 	}// grabRGBD
 	
-	void grabEncoder ( const geometry_msgs::QuaternionStamped::ConstPtr& en_ptr ) {
+	void grabEncoder ( const nav_msgs::Odometry::ConstPtr& en_ptr ) {
 		
+		double kl = 4.0652e-5;   	// left wheel factor
+		double kr = 4.0668e-5;   	// right wheel factor
+		double b = 0.3166;       	// wheel space
+
 		// Extract left and right encoder measurements.
-		double enl1 = en_ptr->quaternion.x;
-		double enl2 = en_ptr->quaternion.y;
-		double enr1 = en_ptr->quaternion.z;
-		double enr2 = en_ptr->quaternion.w;
+		// double enl1 = en_ptr->quaternion.x;
+		// double enl2 = en_ptr->quaternion.y;
+		// double enr1 = en_ptr->quaternion.z;
+		// double enr2 = en_ptr->quaternion.w;
+
+		double x = en_ptr->pose.pose.position.x;
+		double y = en_ptr->pose.pose.position.y;
 		
+		tf::Quaternion q(
+			en_ptr->pose.pose.orientation.x,
+			en_ptr->pose.pose.orientation.y,
+			en_ptr->pose.pose.orientation.z,
+			en_ptr->pose.pose.orientation.w
+		);
+
+		double yaw = tf::getYaw(q);
+		//double th = dre_slam::normAngle(yaw);
+		
+		double delta_x = x - last_x;
+		double delta_y = y - last_y;
+		double delta_theta = yaw - last_th;
+		
+		double cos_tmp_yaw = cos(last_th + 0.5 * delta_theta);
+		double sin_tmp_yaw = sin(last_th + 0.5 * delta_theta);
+		
+		double delta_s = delta_x / cos_tmp_yaw;							//TODO: Need to review
+		double delta_sr = (b * delta_theta) / 2 + delta_s;
+		double delta_sl = 2 * delta_s - delta_sr;
+
+		double delta_enl = delta_sl / kl;
+		double delta_enr = delta_sr / kr;
+		
+		double enl = last_enl_ + delta_enl;
+		double enr = last_enr_ + delta_enr;
+
 		// Calculate left and right encoder.
-		double enl = 0.5* ( enl1 + enl2 );
-		double enr = 0.5* ( enr1 + enr2 );
+		// double enl = 0.5* ( enl1 + enl2 );
+		// double enr = 0.5* ( enr1 + enr2 );
 		double  ts= en_ptr->header.stamp.toSec();
 		
 		// Check bad data.
 		{
 			
 			if ( last_enl_ == 0 && last_enr_ == 0 ) {
+				last_x = x;
+				last_y = y;
+				last_th = yaw;
 				last_enl_ = enl;
 				last_enr_ = enr;
 				return;
 			}
 			
-			double delta_enl = fabs ( enl - last_enl_ );
-			double delta_enr = fabs ( enr - last_enr_ );
-			
 			const double delta_th = 4000;
 			
 			if ( delta_enl > delta_th || delta_enr > delta_th ) {
 				std::cout << "\nJUMP\n";
-				return;
+				//return;
 			}
 			
 			last_enl_ = enl;
@@ -78,12 +114,35 @@ public:
 		
 		// Add encoder measurements.
 		slam_->addEncoder ( enl, enr, ts );
+		
 	}// grabEncoder
 	
+
+	void grabEncoder ( const nav_msgs::Odometry::ConstPtr& en_ptr ) {
+		
+		
+		double x = en_ptr->pose.pose.position.x;
+		double y = en_ptr->pose.pose.position.y;
+		tf::Quaternion q(
+			en_ptr->pose.pose.orientation.x,
+			en_ptr->pose.pose.orientation.y,
+			en_ptr->pose.pose.orientation.z,
+			en_ptr->pose.pose.orientation.w
+		);
+
+		double yaw = tf::getYaw(q);
+		double  ts= en_ptr->header.stamp.toSec();
+		// Add encoder measurements.
+		slam_->addSE2Pose ( x,y,yaw, ts );
+		
+	}// grabSE2Pose
 private:
 	DRE_SLAM* slam_;
 	double last_enl_ = 0;
 	double last_enr_ = 0;
+	double last_x = 0;
+	double last_y = 0;
+	double last_th = 0;
 };
 
 int main ( int argc, char** argv )
@@ -123,7 +182,12 @@ int main ( int argc, char** argv )
 		std::cout << "Read results_dir failure !\n";
 		return -1;
 	}
-
+	// dre_slam_cfg_dir = argv[1];
+	// orbvoc_dir = argv[2];
+	// yolov3_classes_dir = argv[3];
+	// yolov3_model_dir = argv[4];
+	// yolov3_weights_dir = argv[5];
+	// results_dir = argv[6];
 	// Load system configure.
 	Config* cfg = new Config( dre_slam_cfg_dir );
 	

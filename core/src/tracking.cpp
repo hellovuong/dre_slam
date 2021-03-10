@@ -42,11 +42,26 @@ void Tracking::addRGBD ( const cv::Mat& rgb, const cv::Mat& depth, const double&
     input_frames_.push ( frame );
 } // addRGBD
 
+void Tracking::addRGBDOdo ( const cv::Mat& rgb, const cv::Mat& depth, const double& timestamp )
+{
+    // Time cost ~ 1 ms.
+    Frame* frame = new Frame ( rgb, depth, timestamp, feature_detector_, cam_, cfg_ );
+    frame->setOdometry ( se2Poses_);
+    se2Poses_.clear();
+
+    std::unique_lock<mutex> lock ( mutex_input_frames_ );
+    input_frames_.push ( frame );
+} // addRGBD
+
 void Tracking::addEncoder ( const double& enl, const double& enr, const double& timestamp )
 {
     encoders_f2f_.push_back ( Encoder ( enl, enr, timestamp ) );
 } // addEncoder
 
+void Tracking::addSE2Pose ( const double& x, const double& y,const double& yaw, const double& timestamp )
+{
+    se2Poses_.push_back(std::make_pair(timestamp,Sophus::SE2( yaw, Eigen::Vector2d ( x, y ) )));
+} // add SE2 Poses
 
 void Tracking::RGBDThread()
 {
@@ -73,17 +88,27 @@ void Tracking::RGBDThread()
 
 void Tracking::RGBDProcessing()
 {
+    const bool readyOdometry = true; // TODO: (change this to be a memeber in class)
     if ( ! inited_ ) {
 
         initialization();
         inited_ = true;
 
         // Reset Encoder inegration from ref_keyframe to cur_frame.
-        encoder_kf2f_ = EncoderIntegration ( cfg_->odom_kl_, cfg_->odom_kr_, cfg_->odom_b_, cfg_->odom_K_ );
+        // In Case of Encoder readings:
+        if(!readyOdometry)
+            encoder_kf2f_ = EncoderIntegration ( cfg_->odom_kl_, cfg_->odom_kr_, cfg_->odom_b_, cfg_->odom_K_ );
+        else 
+            // In Case of Ready odometry Readings
+            encoder_kf2f_ = EncoderIntegration ();
         return;
     } // if not initialization
 
-    encoder_kf2f_.addEncoders ( cur_frame_->getEncoders() );
+    if(!readyOdometry)
+        encoder_kf2f_.addEncoders ( cur_frame_->getEncoders() );
+    else{
+        encoder_kf2f_.setTrr(cur_frame->odo(0));
+        }
     cur_frame_->setPose ( ref_kf_->getSE2Pose() * encoder_kf2f_.getTrr() ); // Set init pose
 
     // Extract new features and their depth values.

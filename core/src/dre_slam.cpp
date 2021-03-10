@@ -71,9 +71,14 @@ void DRE_SLAM::addEncoder ( const double& enc_l, const double& enc_r, const doub
     tracking_->addEncoder ( enc_l, enc_r, timestamp );
 } // addEncoder
 
+void DRE_SLAM::addSE2Pose ( const double& x, const double& y, const double& yaw, const double& timestamp)
+{
+    tracking->addSE2Pose ( x, y, yaw, timestamp);
+}// add SE2 Pose
+
 void DRE_SLAM::addRGBDImage ( const cv::Mat& rgb, const cv::Mat& depth, const double& timestamp )
 {
-    tracking_->addRGBD ( rgb, depth, timestamp );
+    tracking_->addRGBDOdo ( rgb, depth, timestamp );
 } // addRGBDImage
 
 

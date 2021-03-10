@@ -42,7 +42,9 @@ public:
     Tracking(DynamicPixelCulling* dynamic_pixel_culling, RosPuber* ros_puber, Optimizer* optimizer, Map* map,  Camera* cam, Vocabulary* voc, Config* cfg);
 
     void addRGBD(const cv::Mat& rgb, const cv::Mat& depth, const double& timestamp);
+	void addRGBDOdo ( const cv::Mat& rgb, const cv::Mat& depth, const double& timestamp );
     void addEncoder(const double& enc_l, const double& enc_r, const double& timestamp);
+	void addSE2Pose ( const double& x, const double& y,const double& yaw, const double& timestamp );
 
 private:	
     void RGBDThread(); 
@@ -85,6 +87,7 @@ private:
 
 	// raw encoder data.
 	std::vector<Encoder> encoders_f2f_;
+	std::vector<std::pair<double, Sophus::SE2> > se2Poses_;
 
 	// integrated encoder between the reference KF and the current frame.
 	EncoderIntegration encoder_kf2f_;

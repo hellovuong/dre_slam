@@ -25,6 +25,11 @@ EncoderIntegration::EncoderIntegration ( const double& kl, const double& kr, con
 {
 }
 
+EncoderIntegration::EncoderIntegration () :
+ is_init_ ( false ), x_ ( 0.0 ), y_ ( 0.0 ), th_ ( 0.0 )
+{
+}
+
 Sophus::SE2 EncoderIntegration::addEncoder ( const Encoder& enc )
 {
 
@@ -94,5 +99,18 @@ Sophus::SE2 EncoderIntegration::getTrr()
     return Trr_;
 } // getTrr
 
+void EncoderIntegration::setTrr(Sophus::SE2 pose)
+{
+    Trr_ = pose;
+    x_ = pose.traslation(0);
+    y_ = pose.traslation(1);
+    th_ = 0; // TODO:(Voung) pose.rotationMatrix();
+}
+void EncoderIntegration::resetSe2()
+{
+    x_ = 0.0
+    y_ = 0.0;
+    th_ = 0.0;
+}
 
 } // namespace dre_slam

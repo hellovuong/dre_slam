@@ -288,5 +288,9 @@ void Frame::freeMemory()
 	depth_.release();
 	img_match_.release();
 }
+void Frame::setOdometry(std::vector<Sophus::SE2>& poses){
+    for(auto pose:poses)
+        odo.push_back(pose);
+}
 
 } // namespace dre_slam

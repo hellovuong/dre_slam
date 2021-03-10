@@ -31,6 +31,7 @@ public:
     Sophus::SE2 addEncoders(const std::vector< Encoder >& encs);
 
     Sophus::SE2 getTrr();
+    void setTrr(Sophus::SE2 pose);
     Eigen::Matrix3d getCov();
 
 private:

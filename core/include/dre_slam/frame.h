@@ -45,6 +45,7 @@ public:
     Sophus::SE2 getSE2PoseRefKF();
     Sophus::SE3 getSE3PoseRefKF();
     void setPoseRefKF(KeyFrame* kf);
+	void setOdometry(Sophus::SE2 pose);
     void freeMemory();
 
 	void constructKDTree( const std::vector<cv::KeyPoint>& kps, pcl::KdTreeFLANN<pcl::PointXY>& kd_tree);
@@ -59,6 +60,7 @@ public:
     static long int N_FRAMES;
     long int id_;
     double timestamp_;
+	std::vector<Sophus::SE2> odo;
 
 	std::vector<cv::KeyPoint> kps_;  // keypoints.
 	std::vector<bool> static_flags_; // Static flag with each keypoint.
