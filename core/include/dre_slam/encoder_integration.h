@@ -25,7 +25,7 @@ namespace dre_slam
 class EncoderIntegration
 {
 public:
-	EncoderIntegration(){}
+	EncoderIntegration();
 	EncoderIntegration(const double& kl, const double& kr, const double& b, const double& k);
     Sophus::SE2 addEncoder(const Encoder& enc); // 
     Sophus::SE2 addEncoders(const std::vector< Encoder >& encs);
@@ -33,6 +33,7 @@ public:
     Sophus::SE2 getTrr();
     void setTrr(Sophus::SE2 pose);
     Eigen::Matrix3d getCov();
+    void resetSe2();
 
 private:
     double kl_, kr_, b_, k_;

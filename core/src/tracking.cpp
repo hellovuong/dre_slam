@@ -107,7 +107,7 @@ void Tracking::RGBDProcessing()
     if(!readyOdometry)
         encoder_kf2f_.addEncoders ( cur_frame_->getEncoders() );
     else{
-        encoder_kf2f_.setTrr(cur_frame->odo(0));
+        encoder_kf2f_.setTrr(cur_frame_->odo[0]);
         }
     cur_frame_->setPose ( ref_kf_->getSE2Pose() * encoder_kf2f_.getTrr() ); // Set init pose
 

@@ -118,7 +118,7 @@ public:
 	}// grabEncoder
 	
 
-	void grabEncoder ( const nav_msgs::Odometry::ConstPtr& en_ptr ) {
+	void grabOdom ( const nav_msgs::Odometry::ConstPtr& en_ptr ) {
 		
 		
 		double x = en_ptr->pose.pose.position.x;
@@ -182,13 +182,7 @@ int main ( int argc, char** argv )
 		std::cout << "Read results_dir failure !\n";
 		return -1;
 	}
-	// dre_slam_cfg_dir = argv[1];
-	// orbvoc_dir = argv[2];
-	// yolov3_classes_dir = argv[3];
-	// yolov3_model_dir = argv[4];
-	// yolov3_weights_dir = argv[5];
-	// results_dir = argv[6];
-	// Load system configure.
+
 	Config* cfg = new Config( dre_slam_cfg_dir );
 	
 	// Init SLAM system.
@@ -201,7 +195,7 @@ int main ( int argc, char** argv )
 	typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
 	message_filters::Synchronizer<sync_pol> sync ( sync_pol ( 5 ), rgb_sub,depth_sub );
 	sync.registerCallback ( boost::bind ( &SensorGrabber::grabRGBD,&sensors,_1,_2 ) ); //
-	ros::Subscriber encoder_sub = nh.subscribe ( cfg->encoder_topic_, 1, &SensorGrabber::grabEncoder,&sensors );
+	ros::Subscriber encoder_sub = nh.subscribe ( cfg->encoder_topic_, 1, &SensorGrabber::grabOdom,&sensors );
 	
 	std::cout << "\n\nDRE-SLAM Started\n\n";
 	

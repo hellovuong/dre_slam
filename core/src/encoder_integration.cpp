@@ -102,13 +102,17 @@ Sophus::SE2 EncoderIntegration::getTrr()
 void EncoderIntegration::setTrr(Sophus::SE2 pose)
 {
     Trr_ = pose;
-    x_ = pose.traslation(0);
-    y_ = pose.traslation(1);
-    th_ = 0; // TODO:(Voung) pose.rotationMatrix();
+    auto trans_ = pose.translation();
+    x_ = trans_(0);
+    y_ = trans_(1);
+    auto r_ = pose.rotation_matrix(); // TODO:(Voung) pose.rotationMatrix();
+    double cos_th = r_(0,0);
+    double sin_th = r_(1,0);
+    th_ = std::atan2(sin_th,cos_th);
 }
 void EncoderIntegration::resetSe2()
 {
-    x_ = 0.0
+    x_ = 0.0;
     y_ = 0.0;
     th_ = 0.0;
 }

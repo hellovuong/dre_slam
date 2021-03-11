@@ -84,3 +84,10 @@ target_link_libraries(dre_slam_node
 	${PROJECT_NAME}_lib
 	${catkin_LIBRARIES}
 )
+# sber_slam_node
+	add_executable(sber_slam_node
+	node/sber_slam_node.cpp)
+target_link_libraries(sber_slam_node
+	${PROJECT_NAME}_lib
+	${catkin_LIBRARIES}
+)
